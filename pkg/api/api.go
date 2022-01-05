@@ -36,7 +36,11 @@ func NewServer(settings *config.Config) (*Server, error) {
 		return nil, fmt.Errorf("new db handler: %w", err)
 	}
 	s.handler = handler
-	// s.e.POST("/licenses/create", s.CreateHandler)
+
+	s.e.POST("/policy", s.createPolicy)
+	s.e.DELETE("/policy", s.deletePolicy)
+	s.e.PUT("/policy", s.updatePolicy)
+	s.e.GET("/policy", s.queryPolicy)
 
 	return s, nil
 }
