@@ -32,7 +32,10 @@ func serve() {
 
 	settings := config.New()
 	// start http servers
-	s := api.NewServer(settings)
+	s, err := api.NewServer(settings)
+	if err != nil {
+		logrus.Fatalf("new api server: %v", err)
+	}
 	s.Start(&wg)
 
 	sig := make(chan os.Signal, 1024)

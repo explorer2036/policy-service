@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"policy-server/pkg/config"
+	"policy-server/pkg/db"
 	"strings"
 	"sync"
 
@@ -14,12 +16,12 @@ import (
 type Server struct {
 	e        *echo.Echo     // a fast web framework
 	settings *config.Config // the server configuration
-	// handler  *db.Handler    // handler for db operation
-	done chan struct{} // server is done
+	handler  *db.Handler    // handler for db operation
+	done     chan struct{}  // server is done
 }
 
 // NewServer returns a http server
-func NewServer(settings *config.Config) *Server {
+func NewServer(settings *config.Config) (*Server, error) {
 	s := &Server{
 		e:        echo.New(),
 		settings: settings,
@@ -29,18 +31,14 @@ func NewServer(settings *config.Config) *Server {
 	s.e.HidePort = true
 
 	// init the database handler
-	// s.handler = db.NewHandler(settings)
-
+	handler, err := db.NewHandler(settings)
+	if err != nil {
+		return nil, fmt.Errorf("new db handler: %w", err)
+	}
+	s.handler = handler
 	// s.e.POST("/licenses/create", s.CreateHandler)
-	// s.e.GET("/licenses/list", s.ListHandler)
-	// s.e.GET("/licenses/:id/delete", s.DeleteHandler)
-	// s.e.GET("/licenses/:id", s.GetHandler)
-	// s.e.GET("/licenses/:id/activate", s.ActivateHandler)
-	// s.e.GET("/licenses/:id/deactivate", s.DeactivateHandler)
-	// s.e.POST("/licenses/verify", s.VerifyHandler)
-	// s.e.GET("/license/ping", s.PingHandler)
 
-	return s
+	return s, nil
 }
 
 // Start the http server

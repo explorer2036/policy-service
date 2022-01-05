@@ -8,22 +8,43 @@ import (
 
 // Config structure for server
 type Config struct {
-	Address     string `yaml:"address"`
-	PostgresURL string `yaml:"postgres_url"`
+	Address  string `json:"address"`
+	DBHost   string `json:"db_host"`
+	DBPort   string `json:"db_port"`
+	DBUser   string `json:"db_user"`
+	DBPasswd string `json:"db_passwd"`
+	DBName   string `json:"db_name"`
 }
 
 // New returns the server config
 func New() *Config {
 	s := Config{
-		Address:     ":8000",
-		PostgresURL: "postgres:123456@localhost:5432/policies",
+		Address:  ":8000",
+		DBHost:   "localhost",
+		DBPort:   "5432",
+		DBUser:   "postgres",
+		DBPasswd: "localdb",
+		DBName:   "policies",
 	}
 	if address := os.Getenv("ADDRESS"); address != "" {
 		s.Address = address
 	}
-	if url := os.Getenv("POSTGRES_URL"); url != "" {
-		s.PostgresURL = url
+	if host := os.Getenv("DB_HOST"); host != "" {
+		s.DBHost = host
 	}
-	logrus.Infof("address: %s, postgres url: %s", s.Address, s.PostgresURL)
+	if port := os.Getenv("DB_PORT"); port != "" {
+		s.DBPort = port
+	}
+	if user := os.Getenv("DB_USER"); user != "" {
+		s.DBUser = user
+	}
+	if passwd := os.Getenv("DB_PASSWORD"); passwd != "" {
+		s.DBPasswd = passwd
+	}
+	if name := os.Getenv("DB_NAME"); name != "" {
+		s.DBName = name
+	}
+
+	logrus.Infof("server config: %s", s)
 	return &s
 }
