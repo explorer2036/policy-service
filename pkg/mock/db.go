@@ -34,7 +34,7 @@ func NewStore() db.Repository {
 	}
 }
 
-func (s *Store) FindPolicyByName(name string) (*model.Policy, error) {
+func (s *Store) QueryPolicy(name string) (*model.Policy, error) {
 	for key, policy := range s.policies {
 		if key == name {
 			return policy, nil

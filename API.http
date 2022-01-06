@@ -27,5 +27,19 @@ PUT  http://{{address}}/policy
 Content-Type: application/json
 
 {
+    "name": "policy-test-01",
+	"state": "active",
+	"provider_name": "provider-name-update",
+	"resource_type": "resource-type-test-update",
+	"resources_evaluated": "resources-evaluated-test-update",
+	"tags": "705e4dcb-3ecd-24f3-3a35-3e926e4bded5",
+	"steampipe": "steampipe-update"
+}
+
+### query policy
+GET  http://{{address}}/policy
+Content-Type: application/json
+
+{
     "name": "policy-test-01"
 }

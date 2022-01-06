@@ -11,8 +11,8 @@ const (
 	TablePolicy = "policy"
 )
 
-// FindPolicyByName queries the policy by 'name'
-func (s *Handler) FindPolicyByName(name string) (*model.Policy, error) {
+// QueryPolicy returns the policy by 'name'
+func (s *Handler) QueryPolicy(name string) (*model.Policy, error) {
 	policy := model.Policy{}
 
 	res := s.db.Table(TablePolicy).Where("name = ?", name).First(&policy)

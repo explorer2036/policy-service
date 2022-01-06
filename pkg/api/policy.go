@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-type CreatePolicyPOST struct {
+type PolicyPOST struct {
 	Name               string `json:"name" validate:"required"`
 	State              string `json:"state" validate:"required"`
 	ProviderName       string `json:"provider_name" validate:"required"`
@@ -21,7 +21,7 @@ type CreatePolicyPOST struct {
 }
 
 func (s *Server) CreatePolicy(c echo.Context) error {
-	var request CreatePolicyPOST
+	var request PolicyPOST
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
@@ -30,9 +30,9 @@ func (s *Server) CreatePolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	policy, err := s.handler.FindPolicyByName(request.Name)
+	policy, err := s.handler.QueryPolicy(request.Name)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Find policy: %v", err))
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
 	}
 	if policy != nil {
 		return c.JSON(http.StatusFound, "Policy already exists")
@@ -70,9 +70,9 @@ func (s *Server) DeletePolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	policy, err := s.handler.FindPolicyByName(request.Name)
+	policy, err := s.handler.QueryPolicy(request.Name)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Find policy: %v", err))
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
 	}
 	if policy == nil {
 		return c.JSON(http.StatusNotFound, "Policy not found")
@@ -85,9 +85,58 @@ func (s *Server) DeletePolicy(c echo.Context) error {
 }
 
 func (s *Server) UpdatePolicy(c echo.Context) error {
+	var request PolicyPOST
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
+	}
+
+	if err := s.validate.Struct(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
+	}
+
+	policy, err := s.handler.QueryPolicy(request.Name)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
+	}
+	if policy == nil {
+		return c.JSON(http.StatusNotFound, "Policy not found")
+	}
+
+	policy.State = request.State
+	policy.ProviderName = request.ProviderName
+	policy.ResourceType = request.ResourceType
+	policy.ResourcesEvaluated = request.ResourcesEvaluated
+	policy.Tags = request.Tags
+	policy.Steampipe = request.Steampipe
+	policy.UpdateTime = time.Now()
+	if err := s.handler.UpdatePolicy(policy); err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Update policy: %v", err))
+	}
+
 	return nil
 }
 
+type QueryPolicyPOST struct {
+	Name string `json:"name" validate:"required"`
+}
+
 func (s *Server) QueryPolicy(c echo.Context) error {
-	return nil
+	var request QueryPolicyPOST
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
+	}
+
+	if err := s.validate.Struct(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
+	}
+
+	policy, err := s.handler.QueryPolicy(request.Name)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
+	}
+	if policy == nil {
+		return c.JSON(http.StatusNotFound, "Policy not found")
+	}
+
+	return c.JSON(http.StatusOK, policy)
 }
