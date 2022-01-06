@@ -9,5 +9,10 @@ type Repository interface {
 	UpdatePolicy(policy *model.Policy) error
 	DeletePolicy(name string) error
 
+	// Tags CR
+	CreateTags(tags *model.Tags) error
+	QueryTagsByID(id string) (*model.Tags, error)
+	QueryTagsByKeys(typ string, key string) (*model.Tags, error)
+
 	Close()
 }

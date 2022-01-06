@@ -13,7 +13,7 @@ import (
 type PolicyPOST struct {
 	Name               string `json:"name" validate:"required"`
 	State              string `json:"state" validate:"required"`
-	ProviderName       string `json:"provider_name" validate:"required"`
+	Provider           string `json:"provider" validate:"required"`
 	ResourceType       string `json:"resource_type" validate:"required"`
 	ResourcesEvaluated string `json:"resources_evaluated" validate:"required"`
 	Tags               string `json:"tags" validate:"required"`
@@ -41,7 +41,7 @@ func (s *Server) CreatePolicy(c echo.Context) error {
 		ID:                 uuid.Must(uuid.NewV4()).String(),
 		Name:               request.Name,
 		State:              request.State,
-		ProviderName:       request.ProviderName,
+		Provider:           request.Provider,
 		ResourceType:       request.ResourceType,
 		ResourcesEvaluated: request.ResourcesEvaluated,
 		Tags:               request.Tags,
@@ -103,7 +103,7 @@ func (s *Server) UpdatePolicy(c echo.Context) error {
 	}
 
 	policy.State = request.State
-	policy.ProviderName = request.ProviderName
+	policy.Provider = request.Provider
 	policy.ResourceType = request.ResourceType
 	policy.ResourcesEvaluated = request.ResourcesEvaluated
 	policy.Tags = request.Tags

@@ -7,7 +7,7 @@ Content-Type: application/json
 {
     "name": "policy-test-01",
 	"state": "active",
-	"provider_name": "provider-name-01",
+	"provider": "1eda8c17-06c4-4113-8102-384b0a48e005",
 	"resource_type": "resource-type-test-01",
 	"resources_evaluated": "resources-evaluated-test-01",
 	"tags": "705e4dcb-3ecd-24f3-3a35-3e926e4bded5",
@@ -29,7 +29,7 @@ Content-Type: application/json
 {
     "name": "policy-test-01",
 	"state": "active",
-	"provider_name": "provider-name-update",
+	"provider": "1eda8c17-06c4-4113-8102-384b0a48e005",
 	"resource_type": "resource-type-test-update",
 	"resources_evaluated": "resources-evaluated-test-update",
 	"tags": "705e4dcb-3ecd-24f3-3a35-3e926e4bded5",
@@ -42,4 +42,25 @@ Content-Type: application/json
 
 {
     "name": "policy-test-01"
+}
+
+### create tags
+POST http://{{address}}/tags
+Content-Type: application/json
+
+{
+	"state": "active",
+	"provider": "1eda8c17-06c4-4113-8102-384b0a48e005",
+	"type": "type-01",
+	"key": "key-01",
+	"value": "value-01"
+}
+
+### query tags
+GET  http://{{address}}/tags
+Content-Type: application/json
+
+{
+    "type": "type-01",
+	"key": "key-01"
 }

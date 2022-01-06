@@ -45,6 +45,9 @@ func NewServer(settings *config.Config) (*Server, error) {
 	s.e.PUT("/policy", s.UpdatePolicy)
 	s.e.GET("/policy", s.QueryPolicy)
 
+	s.e.POST("/tags", s.CreateTags)
+	s.e.GET("/tags", s.QueryTags)
+
 	return s, nil
 }
 
