@@ -48,4 +48,14 @@ func (s *Store) CreatePolicy(policy *model.Policy) error {
 	return nil
 }
 
+func (s *Store) UpdatePolicy(policy *model.Policy) error {
+	s.policies[policy.Name] = policy
+	return nil
+}
+
+func (s *Store) DeletePolicy(name string) error {
+	delete(s.policies, name)
+	return nil
+}
+
 func (s *Store) Close() {}

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"policy-server/pkg/mock"
@@ -53,6 +53,16 @@ func (ts *testSuite) TestCreatePolicy() {
 			Steampipe:          "steampipe-test-01",
 			Error:              "",
 		},
+		{
+			Name:               "policy-test-01",
+			State:              "active",
+			ProviderName:       "provider-name-test-01",
+			ResourceType:       "resource-type-test-01",
+			ResourcesEvaluated: "resources-evaluated-test-01",
+			Tags:               "tags-test-01",
+			Steampipe:          "steampipe-test-01",
+			Error:              "Policy already exists",
+		},
 	}
 
 	for i, tc := range createPolicyTestCases {
@@ -68,11 +78,13 @@ func (ts *testSuite) TestCreatePolicy() {
 				ts.T().Fatalf("create policy: %v", err)
 			}
 
-			d, err := ioutil.ReadAll(w.Body)
-			if err != nil {
-				ts.T().Fatalf("read all: %v", err)
+			var payload string
+			if err := json.NewDecoder(w.Body).Decode(&payload); err != nil {
+				if err != io.EOF {
+					ts.T().Fatalf("json decode: %v", err)
+				}
 			}
-			ts.Equal(tc.Error, string(d))
+			ts.Equal(tc.Error, payload)
 		})
 	}
 }

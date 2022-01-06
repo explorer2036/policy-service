@@ -31,3 +31,13 @@ func (s *Handler) FindPolicyByName(name string) (*model.Policy, error) {
 func (s *Handler) CreatePolicy(policy *model.Policy) error {
 	return s.db.Table(TablePolicy).Create(policy).Error
 }
+
+// UpdatePolicy updates a special policy
+func (s *Handler) UpdatePolicy(policy *model.Policy) error {
+	return s.db.Table(TablePolicy).Update(policy).Error
+}
+
+// DeletePolicyByName deletes the policy by name
+func (s *Handler) DeletePolicy(name string) error {
+	return s.db.Table(TablePolicy).Exec("Delete from policy where name = ?", name).Error
+}

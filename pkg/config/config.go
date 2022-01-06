@@ -24,7 +24,7 @@ func New() *Config {
 		DBPort:   "5432",
 		DBUser:   "postgres",
 		DBPasswd: "localdb",
-		DBName:   "policies",
+		DBName:   "security",
 	}
 	if address := os.Getenv("ADDRESS"); address != "" {
 		s.Address = address

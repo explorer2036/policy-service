@@ -15,11 +15,11 @@ import (
 
 // Server for license
 type Server struct {
-	e        *echo.Echo     // a fast web framework
-	settings *config.Config // the server configuration
-	handler  db.Repository  // handler for db operation
-	validate *validator.Validate
-	done     chan struct{} // server is done
+	e        *echo.Echo          // a fast web framework
+	settings *config.Config      // the server configuration
+	handler  db.Repository       // handler for db operation
+	validate *validator.Validate // validate the request fields
+	done     chan struct{}       // server is done
 }
 
 // NewServer returns a http server

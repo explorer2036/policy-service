@@ -1,0 +1,31 @@
+@address=localhost:8000
+
+### create policy
+POST http://{{address}}/policy
+Content-Type: application/json
+
+{
+    "name": "policy-test-01",
+	"state": "active",
+	"provider_name": "provider-name-01",
+	"resource_type": "resource-type-test-01",
+	"resources_evaluated": "resources-evaluated-test-01",
+	"tags": "705e4dcb-3ecd-24f3-3a35-3e926e4bded5",
+	"steampipe": "steampipe-01"
+}
+
+### delete policy
+DELETE http://{{address}}/policy
+Content-Type: application/json
+
+{
+    "name": "policy-test-01"
+}
+
+### update policy
+PUT  http://{{address}}/policy
+Content-Type: application/json
+
+{
+    "name": "policy-test-01"
+}
