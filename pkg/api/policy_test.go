@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"policy-server/pkg/mock"
@@ -50,22 +51,28 @@ func (ts *testSuite) TestCreatePolicy() {
 			ResourcesEvaluated: "resources-evaluated-test-01",
 			Tags:               "tags-test-01",
 			Steampipe:          "steampipe-test-01",
+			Error:              "",
 		},
 	}
 
 	for i, tc := range createPolicyTestCases {
 		tc := tc
 		ts.T().Run(fmt.Sprintf("CreatePolicyTestCase-%d", i), func(t *testing.T) {
-			data, _ := json.Marshal(tc)
-
 			e := echo.New()
-
-			w := httptest.NewRecorder()
+			data, _ := json.Marshal(tc)
 			r := httptest.NewRequest(http.MethodPost, "/policy", bytes.NewBuffer(data))
-			echo.Context
-			if err := ts.server.CreatePolicy(); err != nil {
-
+			r.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			w := httptest.NewRecorder()
+			ec := e.NewContext(r, w)
+			if err := ts.server.CreatePolicy(ec); err != nil {
+				ts.T().Fatalf("create policy: %v", err)
 			}
+
+			d, err := ioutil.ReadAll(w.Body)
+			if err != nil {
+				ts.T().Fatalf("read all: %v", err)
+			}
+			ts.Equal(tc.Error, string(d))
 		})
 	}
 }
