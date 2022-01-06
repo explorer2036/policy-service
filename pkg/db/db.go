@@ -22,7 +22,7 @@ type Handler struct {
 }
 
 // NewHandler returns a new database operation handler
-func NewHandler(settings *config.Config) (*Handler, error) {
+func NewHandler(settings *config.Config) (Repository, error) {
 	s := &Handler{settings: settings}
 
 	// init the database connections

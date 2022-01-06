@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
 )
@@ -16,8 +17,9 @@ import (
 type Server struct {
 	e        *echo.Echo     // a fast web framework
 	settings *config.Config // the server configuration
-	handler  *db.Handler    // handler for db operation
-	done     chan struct{}  // server is done
+	handler  db.Repository  // handler for db operation
+	validate *validator.Validate
+	done     chan struct{} // server is done
 }
 
 // NewServer returns a http server
@@ -25,6 +27,7 @@ func NewServer(settings *config.Config) (*Server, error) {
 	s := &Server{
 		e:        echo.New(),
 		settings: settings,
+		validate: validator.New(),
 		done:     make(chan struct{}),
 	}
 	s.e.HideBanner = true
@@ -37,10 +40,10 @@ func NewServer(settings *config.Config) (*Server, error) {
 	}
 	s.handler = handler
 
-	s.e.POST("/policy", s.createPolicy)
-	s.e.DELETE("/policy", s.deletePolicy)
-	s.e.PUT("/policy", s.updatePolicy)
-	s.e.GET("/policy", s.queryPolicy)
+	s.e.POST("/policy", s.CreatePolicy)
+	s.e.DELETE("/policy", s.DeletePolicy)
+	s.e.PUT("/policy", s.UpdatePolicy)
+	s.e.GET("/policy", s.QueryPolicy)
 
 	return s, nil
 }
@@ -55,7 +58,7 @@ func (s *Server) Start(wg *sync.WaitGroup) {
 		logrus.Infof("http server started on %s", s.settings.Address)
 		if err := s.e.Start(s.settings.Address); err != nil {
 			if !strings.Contains(err.Error(), "Server closed") {
-				panic(err)
+				logrus.Errorf("start http server: %v", err)
 			}
 		}
 	}()
