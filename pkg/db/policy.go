@@ -1,7 +1,7 @@
 package db
 
 import (
-	"policy-server/pkg/db/model"
+	"policy-service/pkg/db/model"
 
 	"github.com/jinzhu/gorm"
 )
@@ -11,11 +11,27 @@ const (
 	TablePolicy = "policy"
 )
 
-// QueryPolicy returns the policy by 'name'
-func (s *Handler) QueryPolicy(name string) (*model.Policy, error) {
+// QueryPolicies returns the policies
+func (s *Handler) QueryPolicies() ([]*model.Policy, error) {
+	policies := []*model.Policy{}
+
+	res := s.db.Table(TablePolicy).Find(&policies)
+	if res.Error != nil {
+		// if there is no record found
+		if res.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, res.Error
+	}
+
+	return policies, nil
+}
+
+// QueryPolicy returns the policy by 'id'
+func (s *Handler) QueryPolicy(id string) (*model.Policy, error) {
 	policy := model.Policy{}
 
-	res := s.db.Table(TablePolicy).Where("name = ?", name).First(&policy)
+	res := s.db.Table(TablePolicy).Where("id = ?", id).First(&policy)
 	if res.Error != nil {
 		// if there is no record found
 		if res.Error == gorm.ErrRecordNotFound {
@@ -37,7 +53,7 @@ func (s *Handler) UpdatePolicy(policy *model.Policy) error {
 	return s.db.Table(TablePolicy).Update(policy).Error
 }
 
-// DeletePolicyByName deletes the policy by name
-func (s *Handler) DeletePolicy(name string) error {
-	return s.db.Table(TablePolicy).Exec("Delete from policy where name = ?", name).Error
+// DeletePolicy deletes the policy by id
+func (s *Handler) DeletePolicy(id string) error {
+	return s.db.Table(TablePolicy).Exec("Delete from policy where id = ?", id).Error
 }

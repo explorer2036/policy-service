@@ -7,10 +7,11 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"policy-server/pkg/mock"
+	"policy-service/pkg/mock"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gofrs/uuid"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/suite"
 )
@@ -34,32 +35,32 @@ func (ts *testSuite) SetupSuite() {
 
 func (ts *testSuite) TestCreatePolicy() {
 	createPolicyTestCases := []struct {
-		Name               string `json:"name"`
-		State              string `json:"state"`
-		ProviderName       string `json:"provider_name"`
-		ResourceType       string `json:"resource_type"`
-		ResourcesEvaluated string `json:"resources_evaluated"`
-		Tags               string `json:"tags"`
-		Steampipe          string `json:"steampipe"`
-		Error              string `json:"-"`
+		Name               string   `json:"name"`
+		State              string   `json:"state"`
+		Provider           string   `json:"provider"`
+		ResourceType       string   `json:"resource_type"`
+		ResourcesEvaluated string   `json:"resources_evaluated"`
+		Tags               []string `json:"tags"`
+		Steampipe          string   `json:"steampipe"`
+		Error              string   `json:"-"`
 	}{
 		{
 			Name:               "policy-test-01",
 			State:              "active",
-			ProviderName:       "provider-name-test-01",
+			Provider:           "provider-name-test-01",
 			ResourceType:       "resource-type-test-01",
 			ResourcesEvaluated: "resources-evaluated-test-01",
-			Tags:               "tags-test-01",
+			Tags:               []string{uuid.Must(uuid.NewV4()).String()},
 			Steampipe:          "steampipe-test-01",
 			Error:              "",
 		},
 		{
 			Name:               "policy-test-01",
 			State:              "active",
-			ProviderName:       "provider-name-test-01",
+			Provider:           "provider-name-test-01",
 			ResourceType:       "resource-type-test-01",
 			ResourcesEvaluated: "resources-evaluated-test-01",
-			Tags:               "tags-test-01",
+			Tags:               []string{uuid.Must(uuid.NewV4()).String()},
 			Steampipe:          "steampipe-test-01",
 			Error:              "Policy already exists",
 		},

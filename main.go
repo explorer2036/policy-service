@@ -1,6 +1,6 @@
 package main
 
-import "policy-server/cmd"
+import "policy-service/cmd"
 
 func main() {
 	cmd.Execute()

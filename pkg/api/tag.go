@@ -3,14 +3,15 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"policy-server/pkg/db/model"
+	"policy-service/pkg/db/model"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/labstack/echo"
 )
 
-type TagsPOST struct {
+type TagPOST struct {
+	ID       string `json:"id" validate:"required"`
 	Type     string `json:"type" validate:"required"`
 	Key      string `json:"key" validate:"required"`
 	Value    string `json:"value" validate:"required"`
@@ -18,8 +19,8 @@ type TagsPOST struct {
 	Provider string `json:"provider" validate:"required"`
 }
 
-func (s *Server) CreateTags(c echo.Context) error {
-	var request TagsPOST
+func (s *Server) CreateTag(c echo.Context) error {
+	var request TagPOST
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
@@ -28,14 +29,16 @@ func (s *Server) CreateTags(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	tags, err := s.handler.QueryTagsByKeys(request.Type, request.Key)
+	// validate the provider
+	provider, err := s.handler.QueryProvider(request.Provider)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query tags: %v", err))
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query provider: %v", err))
 	}
-	if tags != nil {
-		return c.JSON(http.StatusFound, "Tags already exists")
+	if provider == nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid provider %s", request.Provider))
 	}
-	tags = &model.Tags{
+
+	tag := &model.Tag{
 		ID:         uuid.Must(uuid.NewV4()).String(),
 		Type:       request.Type,
 		Key:        request.Key,
@@ -45,20 +48,19 @@ func (s *Server) CreateTags(c echo.Context) error {
 		CreateTime: time.Now(),
 		UpdateTime: time.Now(),
 	}
-	if err := s.handler.CreateTags(tags); err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Create tags: %v", err))
+	if err := s.handler.CreateTag(tag); err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Create tag: %v", err))
 	}
 
 	return nil
 }
 
-type QueryTagsPOST struct {
-	Type string `json:"type" validate:"required"`
-	Key  string `json:"key" validate:"required"`
+type QueryTagPOST struct {
+	ID string `json:"id" validate:"required"`
 }
 
-func (s *Server) QueryTags(c echo.Context) error {
-	var request QueryTagsPOST
+func (s *Server) QueryTag(c echo.Context) error {
+	var request QueryTagPOST
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
@@ -67,12 +69,24 @@ func (s *Server) QueryTags(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	tags, err := s.handler.QueryTagsByKeys(request.Type, request.Key)
+	tag, err := s.handler.QueryTag(request.ID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query tag: %v", err))
+	}
+	if tag == nil {
+		return c.JSON(http.StatusNotFound, "Tag not found")
+	}
+
+	return c.JSON(http.StatusOK, tag)
+}
+
+func (s *Server) QueryTags(c echo.Context) error {
+	tags, err := s.handler.QueryTags()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query tags: %v", err))
 	}
 	if tags == nil {
-		return c.JSON(http.StatusNotFound, "Tags not found")
+		return c.JSON(http.StatusNotFound, "Tag not found")
 	}
 
 	return c.JSON(http.StatusOK, tags)

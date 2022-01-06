@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"policy-server/pkg/config"
+	"policy-service/pkg/config"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"

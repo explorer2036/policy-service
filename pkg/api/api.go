@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 	"fmt"
-	"policy-server/pkg/config"
-	"policy-server/pkg/db"
+	"policy-service/pkg/config"
+	"policy-service/pkg/db"
 	"strings"
 	"sync"
 
@@ -44,9 +44,19 @@ func NewServer(settings *config.Config) (*Server, error) {
 	s.e.DELETE("/policy", s.DeletePolicy)
 	s.e.PUT("/policy", s.UpdatePolicy)
 	s.e.GET("/policy", s.QueryPolicy)
+	s.e.GET("/policies", s.QueryPolicies)
 
-	s.e.POST("/tags", s.CreateTags)
+	s.e.POST("/tag", s.CreateTag)
+	s.e.GET("/tag", s.QueryTag)
 	s.e.GET("/tags", s.QueryTags)
+
+	s.e.POST("/provider", s.CreateProvider)
+	s.e.GET("/provider", s.QueryProvider)
+	s.e.GET("/providers", s.QueryProviders)
+
+	s.e.POST("/provider_type", s.CreateProviderType)
+	s.e.GET("/provider_type", s.QueryProviderType)
+	s.e.GET("/provider_types", s.QueryProviderTypes)
 
 	return s, nil
 }

@@ -1,4 +1,4 @@
-module policy-server
+module policy-service
 
 go 1.17
 

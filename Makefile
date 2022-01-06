@@ -3,4 +3,4 @@ default: build
 all: build
 
 build:
-	go build -o policy-server main.go
+	go build -o policy-service main.go

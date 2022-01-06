@@ -3,8 +3,8 @@ package cmd
 import (
 	"os"
 	"os/signal"
-	"policy-server/pkg/api"
-	"policy-server/pkg/config"
+	"policy-service/pkg/api"
+	"policy-service/pkg/config"
 	"sync"
 	"syscall"
 	"time"

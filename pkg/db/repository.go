@@ -1,18 +1,38 @@
 package db
 
-import "policy-server/pkg/db/model"
+import "policy-service/pkg/db/model"
 
 type Repository interface {
 	// Policy CRUD
-	QueryPolicy(name string) (*model.Policy, error)
+	QueryPolicies() ([]*model.Policy, error)
+	QueryPolicy(id string) (*model.Policy, error)
 	CreatePolicy(policy *model.Policy) error
 	UpdatePolicy(policy *model.Policy) error
-	DeletePolicy(name string) error
+	DeletePolicy(id string) error
 
-	// Tags CR
-	CreateTags(tags *model.Tags) error
-	QueryTagsByID(id string) (*model.Tags, error)
-	QueryTagsByKeys(typ string, key string) (*model.Tags, error)
+	// Tag CR
+	CreateTag(tag *model.Tag) error
+	QueryTag(id string) (*model.Tag, error)
+	QueryTags() ([]*model.Tag, error)
+
+	// Benchmark CRUD
+	QueryBenchmarks() ([]*model.Benchmark, error)
+	QueryBenchmark(id string) (*model.Benchmark, error)
+	CreateBenchmark(benchmark *model.Benchmark) error
+	UpdateBenchmark(benchmark *model.Benchmark) error
+	DeleteBenchmark(id string) error
+
+	// Provider CRU
+	CreateProvider(provider *model.Provider) error
+	UpdateProvider(provider *model.Provider) error
+	QueryProvider(id string) (*model.Provider, error)
+	QueryProviders() ([]*model.Provider, error)
+
+	// ProviderType CRU
+	CreateProviderType(providerType *model.ProviderType) error
+	UpdateProviderType(providerType *model.ProviderType) error
+	QueryProviderType(id string) (*model.ProviderType, error)
+	QueryProviderTypes() ([]*model.ProviderType, error)
 
 	Close()
 }

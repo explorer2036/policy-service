@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"policy-server/pkg/db/model"
+	"policy-service/pkg/db/model"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -11,13 +11,14 @@ import (
 )
 
 type PolicyPOST struct {
-	Name               string `json:"name" validate:"required"`
-	State              string `json:"state" validate:"required"`
-	Provider           string `json:"provider" validate:"required"`
-	ResourceType       string `json:"resource_type" validate:"required"`
-	ResourcesEvaluated string `json:"resources_evaluated" validate:"required"`
-	Tags               string `json:"tags" validate:"required"`
-	Steampipe          string `json:"steampipe" validate:"required"`
+	ID                 string   `json:"id" validate:"id"`
+	Name               string   `json:"name" validate:"required"`
+	State              string   `json:"state" validate:"required"`
+	Provider           string   `json:"provider" validate:"required"`
+	ResourceType       string   `json:"resource_type" validate:"required"`
+	ResourcesEvaluated string   `json:"resources_evaluated" validate:"required"`
+	Tags               []string `json:"tags" validate:"required"`
+	Steampipe          string   `json:"steampipe" validate:"required"`
 }
 
 func (s *Server) CreatePolicy(c echo.Context) error {
@@ -30,14 +31,27 @@ func (s *Server) CreatePolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	policy, err := s.handler.QueryPolicy(request.Name)
+	// validate the provider
+	provider, err := s.handler.QueryProvider(request.Provider)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query provider: %v", err))
 	}
-	if policy != nil {
-		return c.JSON(http.StatusFound, "Policy already exists")
+	if provider == nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid provider %s", request.Provider))
 	}
-	policy = &model.Policy{
+
+	// validate the tags
+	for _, tag := range request.Tags {
+		tag, err := s.handler.QueryTag(tag)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query tag: %v", err))
+		}
+		if tag == nil {
+			return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid tag %s", tag))
+		}
+	}
+
+	policy := &model.Policy{
 		ID:                 uuid.Must(uuid.NewV4()).String(),
 		Name:               request.Name,
 		State:              request.State,
@@ -57,7 +71,7 @@ func (s *Server) CreatePolicy(c echo.Context) error {
 }
 
 type DeletePolicyPOST struct {
-	Name string `json:"name" validate:"required"`
+	ID string `json:"id" validate:"required"`
 }
 
 func (s *Server) DeletePolicy(c echo.Context) error {
@@ -70,15 +84,15 @@ func (s *Server) DeletePolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	policy, err := s.handler.QueryPolicy(request.Name)
+	policy, err := s.handler.QueryPolicy(request.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
 	}
 	if policy == nil {
 		return c.JSON(http.StatusNotFound, "Policy not found")
 	}
-	if err := s.handler.DeletePolicy(request.Name); err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Delete policy %s: %v", request.Name, err))
+	if err := s.handler.DeletePolicy(request.ID); err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Delete policy %s: %v", request.ID, err))
 	}
 
 	return nil
@@ -94,7 +108,7 @@ func (s *Server) UpdatePolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	policy, err := s.handler.QueryPolicy(request.Name)
+	policy, err := s.handler.QueryPolicy(request.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
 	}
@@ -117,7 +131,7 @@ func (s *Server) UpdatePolicy(c echo.Context) error {
 }
 
 type QueryPolicyPOST struct {
-	Name string `json:"name" validate:"required"`
+	ID string `json:"id" validate:"required"`
 }
 
 func (s *Server) QueryPolicy(c echo.Context) error {
@@ -130,7 +144,7 @@ func (s *Server) QueryPolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
-	policy, err := s.handler.QueryPolicy(request.Name)
+	policy, err := s.handler.QueryPolicy(request.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policy: %v", err))
 	}
@@ -139,4 +153,16 @@ func (s *Server) QueryPolicy(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, policy)
+}
+
+func (s *Server) QueryPolicies(c echo.Context) error {
+	policies, err := s.handler.QueryPolicies()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query policies: %v", err))
+	}
+	if policies == nil {
+		return c.JSON(http.StatusNotFound, "Policies not found")
+	}
+
+	return c.JSON(http.StatusOK, policies)
 }
