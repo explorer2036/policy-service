@@ -133,6 +133,7 @@ func (s *Server) UpdatePolicy(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, "Policy not found")
 	}
 
+	policy.Name = request.Name
 	policy.State = request.State
 	policy.Provider = request.Provider
 	policy.ResourceType = request.ResourceType

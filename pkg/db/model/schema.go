@@ -1,18 +1,22 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type Policy struct {
-	ID                 string    `gorm:"column:id"`
-	Name               string    `gorm:"column:name"`
-	State              string    `gorm:"column:state"`
-	Provider           string    `gorm:"column:provider"`
-	ResourceType       string    `gorm:"column:resource_type"`
-	ResourcesEvaluated string    `gorm:"column:resources_evaluated"`
-	Tags               []string  `gorm:"column:tags"`
-	Steampipe          string    `gorm:"column:steampipe"`
-	CreateTime         time.Time `gorm:"column:create_time"`
-	UpdateTime         time.Time `gorm:"column:update_time"`
+	ID                 string         `gorm:"column:id"`
+	Name               string         `gorm:"column:name"`
+	State              string         `gorm:"column:state"`
+	Provider           string         `gorm:"column:provider"`
+	ResourceType       string         `gorm:"column:resource_type"`
+	ResourcesEvaluated string         `gorm:"column:resources_evaluated"`
+	Tags               pq.StringArray `gorm:"column:tags"`
+	Steampipe          string         `gorm:"column:steampipe"`
+	CreateTime         time.Time      `gorm:"column:create_time"`
+	UpdateTime         time.Time      `gorm:"column:update_time"`
 }
 
 type Tag struct {
@@ -47,15 +51,15 @@ type Provider struct {
 }
 
 type Benchmark struct {
-	ID                 string    `gorm:"column:id"`
-	Name               string    `gorm:"column:name"`
-	State              string    `gorm:"column:state"`
-	Provider           string    `gorm:"column:provider"`
-	ResourceType       string    `gorm:"column:resource_type"`
-	ResourcesEvaluated string    `gorm:"column:resources_evaluated"`
-	Tags               []string  `gorm:"column:tags"`
-	Policies           []string  `gorm:"column:policies"`
-	Description        string    `gorm:"column:description"`
-	CreateTime         time.Time `gorm:"column:create_time"`
-	UpdateTime         time.Time `gorm:"column:update_time"`
+	ID                 string         `gorm:"column:id"`
+	Name               string         `gorm:"column:name"`
+	State              string         `gorm:"column:state"`
+	Provider           string         `gorm:"column:provider"`
+	ResourceType       string         `gorm:"column:resource_type"`
+	ResourcesEvaluated string         `gorm:"column:resources_evaluated"`
+	Tags               pq.StringArray `gorm:"column:tags"`
+	Policies           pq.StringArray `gorm:"column:policies"`
+	Description        string         `gorm:"column:description"`
+	CreateTime         time.Time      `gorm:"column:create_time"`
+	UpdateTime         time.Time      `gorm:"column:update_time"`
 }

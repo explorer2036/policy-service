@@ -1,4 +1,9 @@
 @address=localhost:8000
+@provider_type=81634f9f-cee4-4a72-b0d3-6f96e501bb9e
+@provider=e701999f-d843-4824-82a0-e1f1ca832d28
+@tag=52cb4f7b-3067-4195-8cf4-8e1c9afbaa7a
+@policy=e0a79df7-5ce4-4aec-9b69-047e07c9a4af
+@benchmark=dd48df7c-af06-4e50-9fe3-4084178b6fcf
 
 ### create provider type
 POST http://{{address}}/provider_type
@@ -15,7 +20,7 @@ GET  http://{{address}}/provider_type
 Content-Type: application/json
 
 {
-    "id": "c560662a-cd8c-4f01-b0d8-1ec4bf7ce7fb"
+    "id": "{{provider_type}}"
 }
 
 ### create provider
@@ -26,7 +31,7 @@ Content-Type: application/json
     "name": "provider-01",
 	"url": "url-01",
 	"state": "active",
-	"provider_type": "c560662a-cd8c-4f01-b0d8-1ec4bf7ce7fb",
+	"provider_type": "{{provider_type}}",
 	"description": "description-01"
 }
 
@@ -35,20 +40,47 @@ GET  http://{{address}}/provider
 Content-Type: application/json
 
 {
-    "id": "4872cc16-2799-49a0-9cb6-035cc60c2029"
+    "id": "{{provider}}"
 }
+
+### create tag
+POST http://{{address}}/tag
+Content-Type: application/json
+
+{
+    "type": "type-01",
+	"key": "key-01",
+	"value": "value-01",
+	"state": "active",
+	"provider": "{{provider}}"
+}
+
+### query tag
+GET  http://{{address}}/tag
+Content-Type: application/json
+
+{
+    "id": "{{tag}}"
+}
+
+### query tags
+GET  http://{{address}}/tags
+Content-Type: application/json
+
+{}
+
 
 ### create policy
 POST http://{{address}}/policy
 Content-Type: application/json
 
 {
-    "name": "policy-test-01",
+    "name": "policy-01",
 	"state": "active",
-	"provider": "1eda8c17-06c4-4113-8102-384b0a48e005",
-	"resource_type": "resource-type-test-01",
-	"resources_evaluated": "resources-evaluated-test-01",
-	"tags": "705e4dcb-3ecd-24f3-3a35-3e926e4bded5",
+	"provider": "{{provider}}",
+	"resource_type": "resource-type-01",
+	"resources_evaluated": "resources-evaluated-01",
+	"tags": ["{{tag}}"],
 	"steampipe": "steampipe-01"
 }
 
@@ -57,7 +89,7 @@ DELETE http://{{address}}/policy
 Content-Type: application/json
 
 {
-    "name": "policy-test-01"
+    "id": "{{policy}}"
 }
 
 ### update policy
@@ -65,13 +97,14 @@ PUT  http://{{address}}/policy
 Content-Type: application/json
 
 {
+	"id": "{{policy}}",
     "name": "policy-test-01",
 	"state": "active",
-	"provider": "1eda8c17-06c4-4113-8102-384b0a48e005",
-	"resource_type": "resource-type-test-update",
-	"resources_evaluated": "resources-evaluated-test-update",
-	"tags": "705e4dcb-3ecd-24f3-3a35-3e926e4bded5",
-	"steampipe": "steampipe-update"
+	"provider": "{{provider}}",
+	"resource_type": "resource-type-01",
+	"resources_evaluated": "resources-evaluated-01",
+	"tags": ["{{tag}}"],
+	"steampipe": "steampipe-01"
 }
 
 ### query policy
@@ -79,26 +112,64 @@ GET  http://{{address}}/policy
 Content-Type: application/json
 
 {
-    "name": "policy-test-01"
+    "id": "{{policy}}"
 }
 
-### create tag
-POST http://{{address}}/tags
+### query policies
+GET  http://{{address}}/policies
+Content-Type: application/json
+
+{}
+
+### create benchmark
+POST http://{{address}}/benchmark
 Content-Type: application/json
 
 {
+    "name": "benchmark-01",
 	"state": "active",
-	"provider": "1eda8c17-06c4-4113-8102-384b0a48e005",
-	"type": "type-01",
-	"key": "key-01",
-	"value": "value-01"
+	"provider": "{{provider}}",
+	"resource_type": "resource-type-01",
+	"resources_evaluated": "resources-evaluated-01",
+	"tags": ["{{tag}}"],
+	"policies": ["{{policy}}"],
+	"description": "description-01"
 }
 
-### query tags
-GET  http://{{address}}/tags
+### delete benchmark
+DELETE http://{{address}}/benchmark
 Content-Type: application/json
 
 {
-    "type": "type-01",
-	"key": "key-01"
+    "id": "{{benchmark}}"
 }
+
+### update benchmark
+PUT  http://{{address}}/benchmark
+Content-Type: application/json
+
+{
+	"id": "{{benchmark}}",
+	"name": "benchmark-test-01",
+	"state": "active",
+	"provider": "{{provider}}",
+	"resource_type": "resource-type-01",
+	"resources_evaluated": "resources-evaluated-01",
+	"tags": ["{{tag}}"],
+	"policies": ["{{policy}}"],
+	"description": "description-01"
+}
+
+### query benchmark
+GET  http://{{address}}/benchmark
+Content-Type: application/json
+
+{
+    "id": "{{benchmark}}"
+}
+
+### query policies
+GET  http://{{address}}/benchmarks
+Content-Type: application/json
+
+{}
