@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"policy-service/pkg/db/model"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -11,7 +12,7 @@ import (
 )
 
 type PolicyPOST struct {
-	ID                 string   `json:"id" validate:"id"`
+	ID                 string   `json:"id"`
 	Name               string   `json:"name" validate:"required"`
 	State              string   `json:"state" validate:"required"`
 	Provider           string   `json:"provider" validate:"required"`
@@ -22,7 +23,7 @@ type PolicyPOST struct {
 }
 
 func (s *Server) validatePolicyRequest(c echo.Context, request *PolicyPOST) error {
-	if err := s.validate.Struct(&request); err != nil {
+	if err := s.validate.Struct(request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
@@ -71,10 +72,16 @@ func (s *Server) CreatePolicy(c echo.Context) error {
 		UpdateTime:         time.Now(),
 	}
 	if err := s.handler.CreatePolicy(policy); err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return c.JSON(http.StatusFound, "Provider already exists")
+		}
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Create policy: %v", err))
 	}
+	response := map[string]string{
+		"id": policy.ID,
+	}
 
-	return nil
+	return c.JSON(http.StatusOK, response)
 }
 
 type DeletePolicyPOST struct {
@@ -102,7 +109,7 @@ func (s *Server) DeletePolicy(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Delete policy %s: %v", request.ID, err))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "success")
 }
 
 func (s *Server) UpdatePolicy(c echo.Context) error {
@@ -111,6 +118,9 @@ func (s *Server) UpdatePolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
 
+	if request.ID == "" {
+		return c.JSON(http.StatusBadRequest, "id is empty")
+	}
 	if err := s.validatePolicyRequest(c, &request); err != nil {
 		return nil
 	}
@@ -134,7 +144,7 @@ func (s *Server) UpdatePolicy(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Update policy: %v", err))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "success")
 }
 
 type QueryPolicyPOST struct {

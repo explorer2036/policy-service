@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"policy-service/pkg/db/model"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -11,7 +12,7 @@ import (
 )
 
 type BenchmarkPOST struct {
-	ID                 string   `json:"id" validate:"id"`
+	ID                 string   `json:"id"`
 	Name               string   `json:"name" validate:"required"`
 	State              string   `json:"state" validate:"required"`
 	Provider           string   `json:"provider" validate:"required"`
@@ -85,10 +86,17 @@ func (s *Server) CreateBenchmark(c echo.Context) error {
 		UpdateTime:         time.Now(),
 	}
 	if err := s.handler.CreateBenchmark(benchmark); err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return c.JSON(http.StatusFound, "Benchmark already exists")
+		}
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Create benchmark: %v", err))
 	}
 
-	return nil
+	response := map[string]string{
+		"id": benchmark.ID,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 type DeleteBenchmarkPOST struct {
@@ -116,7 +124,7 @@ func (s *Server) DeleteBenchmark(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Delete benchmark %s: %v", request.ID, err))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "success")
 }
 
 func (s *Server) UpdateBenchmark(c echo.Context) error {
@@ -125,6 +133,9 @@ func (s *Server) UpdateBenchmark(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
 
+	if request.ID == "" {
+		return c.JSON(http.StatusBadRequest, "id is empty")
+	}
 	if err := s.validateBenchmarkRequest(c, &request); err != nil {
 		return err
 	}
@@ -150,7 +161,7 @@ func (s *Server) UpdateBenchmark(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Update benchmark: %v", err))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "success")
 }
 
 type QueryBenchmarkPOST struct {

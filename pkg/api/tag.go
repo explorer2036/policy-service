@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"policy-service/pkg/db/model"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -11,7 +12,6 @@ import (
 )
 
 type TagPOST struct {
-	ID       string `json:"id" validate:"required"`
 	Type     string `json:"type" validate:"required"`
 	Key      string `json:"key" validate:"required"`
 	Value    string `json:"value" validate:"required"`
@@ -20,7 +20,7 @@ type TagPOST struct {
 }
 
 func (s *Server) validateTagRequest(c echo.Context, request *TagPOST) error {
-	if err := s.validate.Struct(&request); err != nil {
+	if err := s.validate.Struct(request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
 
@@ -33,7 +33,7 @@ func (s *Server) validateTagRequest(c echo.Context, request *TagPOST) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid provider %s", request.Provider))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "success")
 }
 
 func (s *Server) CreateTag(c echo.Context) error {
@@ -57,10 +57,16 @@ func (s *Server) CreateTag(c echo.Context) error {
 		UpdateTime: time.Now(),
 	}
 	if err := s.handler.CreateTag(tag); err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return c.JSON(http.StatusFound, "Tag already exists")
+		}
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Create tag: %v", err))
 	}
+	response := map[string]string{
+		"id": tag.ID,
+	}
 
-	return nil
+	return c.JSON(http.StatusOK, response)
 }
 
 type QueryTagPOST struct {

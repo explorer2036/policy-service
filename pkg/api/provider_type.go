@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"policy-service/pkg/db/model"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -11,7 +12,7 @@ import (
 )
 
 type ProviderTypePOST struct {
-	ID          string `json:"id" validate:"required"`
+	ID          string `json:"id"`
 	Name        string `json:"name" validate:"required"`
 	State       string `json:"state" validate:"required"`
 	Description string `json:"description"`
@@ -36,10 +37,17 @@ func (s *Server) CreateProviderType(c echo.Context) error {
 		UpdateTime:  time.Now(),
 	}
 	if err := s.handler.CreateProviderType(providerType); err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return c.JSON(http.StatusFound, "Provider type already exists")
+		}
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Create provider type: %v", err))
 	}
 
-	return nil
+	response := map[string]string{
+		"id": providerType.ID,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 type QueryProviderTypePOST struct {
@@ -85,6 +93,9 @@ func (s *Server) UpdateProviderType(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
 
+	if request.ID == "" {
+		return c.JSON(http.StatusBadRequest, "id is empty")
+	}
 	if err := s.validate.Struct(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
@@ -105,5 +116,5 @@ func (s *Server) UpdateProviderType(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Update provider type: %v", err))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "success")
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"policy-service/pkg/db/model"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -11,7 +12,7 @@ import (
 )
 
 type ProviderPOST struct {
-	ID           string `json:"id" validate:"required"`
+	ID           string `json:"id"`
 	Name         string `json:"name" validate:"required"`
 	Url          string `json:"url" validate:"required"`
 	ProviderType string `json:"provider_type" validate:"required"`
@@ -20,17 +21,17 @@ type ProviderPOST struct {
 }
 
 func (s *Server) validateProviderRequest(c echo.Context, request *ProviderPOST) error {
-	if err := s.validate.Struct(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
+	if err := s.validate.Struct(request); err != nil {
+		return fmt.Errorf("validate: %w", err)
 	}
 
 	// validate the provider type
 	providerType, err := s.handler.QueryProviderType(request.ProviderType)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query provider type: %v", err))
+		return fmt.Errorf("query provider type: %w", err)
 	}
 	if providerType == nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid provider type %s", request.ProviderType))
+		return fmt.Errorf("invalid provider type %s", request.ProviderType)
 	}
 
 	return nil
@@ -43,7 +44,7 @@ func (s *Server) CreateProvider(c echo.Context) error {
 	}
 
 	if err := s.validateProviderRequest(c, &request); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate request: %v", err))
 	}
 
 	provider := &model.Provider{
@@ -57,10 +58,16 @@ func (s *Server) CreateProvider(c echo.Context) error {
 		UpdateTime:   time.Now(),
 	}
 	if err := s.handler.CreateProvider(provider); err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			return c.JSON(http.StatusFound, "Provider already exists")
+		}
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Create provider: %v", err))
 	}
 
-	return nil
+	response := map[string]string{
+		"id": provider.ID,
+	}
+	return c.JSON(http.StatusOK, response)
 }
 
 type QueryProviderPOST struct {
@@ -106,6 +113,9 @@ func (s *Server) UpdateProvider(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
 
+	if request.ID == "" {
+		return c.JSON(http.StatusBadRequest, "id is empty")
+	}
 	if err := s.validateProviderRequest(c, &request); err != nil {
 		return err
 	}
@@ -128,5 +138,5 @@ func (s *Server) UpdateProvider(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Update provider: %v", err))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "success")
 }

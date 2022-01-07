@@ -1,5 +1,43 @@
 @address=localhost:8000
 
+### create provider type
+POST http://{{address}}/provider_type
+Content-Type: application/json
+
+{
+    "name": "provider-type-01",
+	"state": "active",
+	"description": "description-01"
+}
+
+### query provider type
+GET  http://{{address}}/provider_type
+Content-Type: application/json
+
+{
+    "id": "c560662a-cd8c-4f01-b0d8-1ec4bf7ce7fb"
+}
+
+### create provider
+POST http://{{address}}/provider
+Content-Type: application/json
+
+{
+    "name": "provider-01",
+	"url": "url-01",
+	"state": "active",
+	"provider_type": "c560662a-cd8c-4f01-b0d8-1ec4bf7ce7fb",
+	"description": "description-01"
+}
+
+### query provider
+GET  http://{{address}}/provider
+Content-Type: application/json
+
+{
+    "id": "4872cc16-2799-49a0-9cb6-035cc60c2029"
+}
+
 ### create policy
 POST http://{{address}}/policy
 Content-Type: application/json
@@ -44,7 +82,7 @@ Content-Type: application/json
     "name": "policy-test-01"
 }
 
-### create tags
+### create tag
 POST http://{{address}}/tags
 Content-Type: application/json
 
