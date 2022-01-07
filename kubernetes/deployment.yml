@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: policy-service
+  namespace: apps
+  labels:
+    app: policy-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: policy-service
+  template:
+    metadata:
+      labels:
+        app: policy-service
+    spec:
+      containers:
+        - name: policy-service
+          image: policy-service:v1.0
+          env:
+            - name: DB_HOST
+              value: "localhost"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              value: "123456"
+            - name: DB_NAME
+              value: "security"
+          ports:
+            - containerPort: 8000

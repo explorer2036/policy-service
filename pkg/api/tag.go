@@ -19,12 +19,7 @@ type TagPOST struct {
 	Provider string `json:"provider" validate:"required"`
 }
 
-func (s *Server) CreateTag(c echo.Context) error {
-	var request TagPOST
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
-	}
-
+func (s *Server) validateTagRequest(c echo.Context, request *TagPOST) error {
 	if err := s.validate.Struct(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
@@ -36,6 +31,19 @@ func (s *Server) CreateTag(c echo.Context) error {
 	}
 	if provider == nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid provider %s", request.Provider))
+	}
+
+	return nil
+}
+
+func (s *Server) CreateTag(c echo.Context) error {
+	var request TagPOST
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
+	}
+
+	if err := s.validateTagRequest(c, &request); err != nil {
+		return err
 	}
 
 	tag := &model.Tag{

@@ -40,6 +40,12 @@ func NewServer(settings *config.Config) (*Server, error) {
 	}
 	s.handler = handler
 
+	s.e.POST("/benchmark", s.CreateBenchmark)
+	s.e.DELETE("/benchmark", s.DeleteBenchmark)
+	s.e.PUT("/benchmark", s.UpdateBenchmark)
+	s.e.GET("/benchmark", s.QueryBenchmark)
+	s.e.GET("/benchmarks", s.QueryBenchmarks)
+
 	s.e.POST("/policy", s.CreatePolicy)
 	s.e.DELETE("/policy", s.DeletePolicy)
 	s.e.PUT("/policy", s.UpdatePolicy)
@@ -51,10 +57,12 @@ func NewServer(settings *config.Config) (*Server, error) {
 	s.e.GET("/tags", s.QueryTags)
 
 	s.e.POST("/provider", s.CreateProvider)
+	s.e.PUT("/provider", s.UpdateProvider)
 	s.e.GET("/provider", s.QueryProvider)
 	s.e.GET("/providers", s.QueryProviders)
 
 	s.e.POST("/provider_type", s.CreateProviderType)
+	s.e.PUT("/provider_type", s.UpdateProviderType)
 	s.e.GET("/provider_type", s.QueryProviderType)
 	s.e.GET("/provider_types", s.QueryProviderTypes)
 

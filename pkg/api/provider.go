@@ -19,12 +19,7 @@ type ProviderPOST struct {
 	Description  string `json:"description"`
 }
 
-func (s *Server) CreateProvider(c echo.Context) error {
-	var request ProviderPOST
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
-	}
-
+func (s *Server) validateProviderRequest(c echo.Context, request *ProviderPOST) error {
 	if err := s.validate.Struct(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
@@ -32,10 +27,23 @@ func (s *Server) CreateProvider(c echo.Context) error {
 	// validate the provider type
 	providerType, err := s.handler.QueryProviderType(request.ProviderType)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query provider: %v", err))
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query provider type: %v", err))
 	}
 	if providerType == nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid provider type %s", request.ProviderType))
+	}
+
+	return nil
+}
+
+func (s *Server) CreateProvider(c echo.Context) error {
+	var request ProviderPOST
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
+	}
+
+	if err := s.validateProviderRequest(c, &request); err != nil {
+		return err
 	}
 
 	provider := &model.Provider{
@@ -98,16 +106,8 @@ func (s *Server) UpdateProvider(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
 
-	if err := s.validate.Struct(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
-	}
-
-	providerType, err := s.handler.QueryProviderType(request.ProviderType)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Query provider type: %v", err))
-	}
-	if providerType == nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid provider type %s", request.ProviderType))
+	if err := s.validateProviderRequest(c, &request); err != nil {
+		return err
 	}
 
 	provider, err := s.handler.QueryProvider(request.ID)

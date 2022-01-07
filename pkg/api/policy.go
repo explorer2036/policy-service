@@ -21,12 +21,7 @@ type PolicyPOST struct {
 	Steampipe          string   `json:"steampipe" validate:"required"`
 }
 
-func (s *Server) CreatePolicy(c echo.Context) error {
-	var request PolicyPOST
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
-	}
-
+func (s *Server) validatePolicyRequest(c echo.Context, request *PolicyPOST) error {
 	if err := s.validate.Struct(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
 	}
@@ -49,6 +44,18 @@ func (s *Server) CreatePolicy(c echo.Context) error {
 		if tag == nil {
 			return c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid tag %s", tag))
 		}
+	}
+	return nil
+}
+
+func (s *Server) CreatePolicy(c echo.Context) error {
+	var request PolicyPOST
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
+	}
+
+	if err := s.validatePolicyRequest(c, &request); err != nil {
+		return nil
 	}
 
 	policy := &model.Policy{
@@ -104,8 +111,8 @@ func (s *Server) UpdatePolicy(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Bind request: %v", err))
 	}
 
-	if err := s.validate.Struct(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, fmt.Sprintf("Validate: %v", err))
+	if err := s.validatePolicyRequest(c, &request); err != nil {
+		return nil
 	}
 
 	policy, err := s.handler.QueryPolicy(request.ID)
